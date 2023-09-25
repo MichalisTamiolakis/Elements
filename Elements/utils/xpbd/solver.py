@@ -1,7 +1,7 @@
 import numpy as np
 import math
-from Elements.utils.softbodies.constraints import VolumeConstraint, DistanceConstraint
-from Elements.utils.softbodies.particle import Particle
+from Elements.utils.xpbd.constraints import VolumeConstraint, DistanceConstraint
+from Elements.utils.xpbd.particle import Particle
 
 class Solver:
     """
