@@ -1,4 +1,5 @@
 import numpy as np
+import math
 from Elements.utils.softbodies.constraints import VolumeConstraint, DistanceConstraint
 from Elements.utils.softbodies.particle import Particle
 
@@ -80,8 +81,72 @@ class Solver:
             for particle in self.particles:
                 particle.velocity = (particle.position - particle.previous_position) / substepDt # Update velocity
     
-    def __solve_constraints(self):
+    def __solve_constraints(self, dt:float):
+        self.__solve_distance_constraints(dt)
+        self.__solve_volume_constraints(dt)
+
+    def __solve_distance_constraints(self, dt:float):
+        for constraint in self.__distance_constraints:
+            particle_0 = self.particles[constraint.particle_index_0]
+            particle_1 = self.particles[constraint.particle_index_1]
+
+            alpha = constraint.compliance / dt / dt 
+            total_weight = particle_0.inverse_mass + particle_1.inverse_mass
+            
+            if math.isclose(total_weight, 0):
+                continue
+
+            gradiance = np.subtract(particle_0.position, particle_1.position)
+            delta = particle_1.position - particle_0.position
+            delta_length = np.linalg.norm(delta)
+
+            if math.isclose(delta_length, 0):
+                continue
+
+            gradiance *= 1.0 / delta_length
+            c = delta_length - constraint.distance
+            s = -c / (total_weight + alpha)
+
+            particle_0.position += s * particle_0.inverse_mass * gradiance
+            particle_1.position -= s * particle_1.inverse_mass * gradiance
         pass
+
+    def __solve_volume_constraints(self, dt:float):
+        # C = 6(V - Vrest)
+        # Gradients =
+        # [0] = (x3-x1) x (x2-x1)
+        # [1] = (x2-x0) x (x3-x0)
+        # [2] = (x3-x0) x (x1-x0)
+        # [3] = (x1-x0) x (x2-x0)
+
+        for constraint in self.__volume_constraints:
+            alpha = constraint.compliance / dt / dt
+
+            vertices = [
+                self.particles[constraint.affected_particle_indices[0]].position,
+                self.particles[constraint.affected_particle_indices[1]].position,
+                self.particles[constraint.affected_particle_indices[2]].position,
+                self.particles[constraint.affected_particle_indices[3]].position
+            ]
+
+            gradients = [
+                np.cross(np.subtract(vertices[3], vertices[1]), np.subtract(vertices[2], vertices[1])),
+                np.cross(np.subtract(vertices[2], vertices[0]), np.subtract(vertices[3], vertices[0])),
+                np.cross(np.subtract(vertices[3], vertices[1]), np.subtract(vertices[1], vertices[0])),
+                np.cross(np.subtract(vertices[1], vertices[1]), np.subtract(vertices[2], vertices[0]))
+            ]
+
+            total_weight = 0
+            for i in range(4):
+                total_weight += self.particles[constraint.affected_particle_indices[i]].inverse_mass
+
+            c = self.__tetrahedron_volume(constraint.affected_particle_indices) - constraint.volume
+            s = -c / (total_weight + alpha)
+
+            # apply constraints
+            for i in range(4):
+                self.particles[constraint.affected_particle_indices[i]].position += (s * self.particles[constraint.affected_particle_indices[i]].inverse_mass / 6.0) * gradients[i]
+            
 
     def __tetrahedron_volume(self, particle_indices:list[int]):
         # V = 1/6((x2-x1) x (x1-x1)) . (x4-x1)
