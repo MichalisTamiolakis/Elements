@@ -492,6 +492,11 @@ class RenderMesh(Component):
 
     Accepts a dedicated RenderSystem to initiate rendering of the RenderMesh, using its vertex attributes (property)
     """
+
+    # Indicates whether the vertex array/index array buffers need update in the cpu 
+    vertex_array_dirty = False # Indicates that the data in the vertex array buffers need update in the gpu
+    index_array_dirty = False # Indicates that the data in the index buffers need update in the gpu
+
     def __init__(self, name=None, type=None, id=None, vertex_attributes=None, vertex_index=None):
         """ Initialize the generic RenderMesh component with the vertex attribute arrays
         this is the generic place to store all vertex attributes (vertices, colors, normals, bone weights etc.)
@@ -519,6 +524,7 @@ class RenderMesh(Component):
     
     @vertex_attributes.setter
     def vertex_attributes(self, value):
+        self.vertex_array_dirty = True
         self._vertex_attributes = value
     
     @property
@@ -527,8 +533,14 @@ class RenderMesh(Component):
     
     @vertex_index.setter
     def vertex_index(self, value):
+        self.index_array_dirty = True
         self._vertex_index = value
         
+    def force_update_buffers(self):
+        """Will send again the vertex attributes and indices to the GPU buffers in the next update call."""
+        self.vertex_array_dirty = True
+        self.index_array_dirty = True
+
     def update(self):
         pass
         # print(self.getClassName(), ": update() called")

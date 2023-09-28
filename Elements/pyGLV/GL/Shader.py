@@ -805,7 +805,17 @@ class RenderGLShaderSystem(System):
         
         #add here custom Shader render calls
         compShader.enableShader()
-    
+
+        if (compRenderMesh.vertex_array_dirty):
+            vertexArray.attributes = compRenderMesh.vertex_attributes
+            vertexArray.update_vertex_attribute_buffers()
+            compRenderMesh.vertex_array_dirty = False
+
+        if (compRenderMesh.index_array_dirty):
+            vertexArray.index = compRenderMesh.vertex_index
+            vertexArray.update_index_buffer()
+            compRenderMesh.index_array_dirty = False
+
         #call main draw from VertexArray
         vertexArray.update()
         compShader.disableShader()

@@ -146,6 +146,30 @@ class VertexArray(Component):
         gl.glBindVertexArray(0)
         gl.glBindBuffer(gl.GL_ARRAY_BUFFER, 0)
     
+    def update_vertex_attribute_buffers(self):
+        """Resends the vertex attribute data to the GPU"""
+        if(len(self._buffers) <= 0):
+            return
+        
+        pos = 0
+        for loc, data in enumerate(self._attributes):
+            if data is not None and len(data) : #check if it is empty
+                data = np.array(data, np.float32, copy=False)
+                gl.glBindBuffer(gl.GL_ARRAY_BUFFER, self._buffers[pos])
+                gl.glBufferData(gl.GL_ARRAY_BUFFER, data, self._usage)
+                pos += 1
+        pass
+
+    def update_index_buffer(self):
+        """Resends the index data to the GPU"""
+        if(len(self._buffers) <= 0):
+            return
+        
+        if self._index is not None and len(self._index): #check if list is empty
+            index_buffer = np.array(self._index, np.int32, copy=False)
+            gl.glBindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, self._buffers[-1]) # Index is always the last buffer
+            gl.glBufferData(gl.GL_ELEMENT_ARRAY_BUFFER, index_buffer, self._usage)
+
     def __iter__(self) ->CompNullIterator:
         """ 
         A component does not have children to iterate, thus a NULL iterator
