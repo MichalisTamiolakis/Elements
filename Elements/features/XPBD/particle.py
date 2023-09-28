@@ -24,6 +24,3 @@ class Particle:
     @mass.setter
     def mass(self, value):
         self.inverse_mass = 1.0 / value
-
-    def __init__(self) -> None:
-        pass
