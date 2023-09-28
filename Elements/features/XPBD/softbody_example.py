@@ -1,5 +1,6 @@
 
 import os
+import time
 import numpy as np
 import Elements.pyECSS.math_utilities as util
 from Elements.pyECSS.Entity import Entity
@@ -20,13 +21,9 @@ from Elements.definitions import MODEL_DIR
 
 from Elements.utils.helper_function import displayGUI_text
 example_description = \
-"This example demonstrates the ability to import \n\
-really complex objects along with their textures. \n\
-The scene is being lit using the Blinn-Phong algorithm. \n\
-You may move the camera using the mouse or the GUI. \n\
-You may see the ECS Scenegraph showing Entities & Components of the scene and \n\
-various information about them. Hit ESC OR Close the window to quit." 
-
+"This example demonstrates the use of the XPBD solver. \n" \
+"The solver can be used to simulate any kind of constrained object, like softbody, cloth, rope, etc. \n" \
+"Here, a tetrahedron softbody is simulated. \n" \
 
 #Light
 Lposition = util.vec(-1, 1.5, 1.2) #uniform lightpos
@@ -67,6 +64,8 @@ def addTetrahedronSoftbody(solver:Solver, position:list[float], compliance:float
 
     # Create volume constraint
     solver.add_volume_constraint([base_index, base_index + 1, base_index + 2, base_index + 3], compliance)
+
+    # solver.particles[1].is_kinematic = True
 
 def get_solver_vertices(solver:Solver):
     vertices = []
@@ -123,7 +122,7 @@ def main():
     initUpdate = scene.world.createSystem(InitGLShaderSystem())
 
     # Add softbody to solver
-    addTetrahedronSoftbody(xpbd_solver, [0, 1, 0], 100)
+    addTetrahedronSoftbody(xpbd_solver, [0, 2, 0], .02)
 
 
     # obj_to_import = MODEL_DIR / "LivingRoom" / "Lamp" / "Lamp.obj"
@@ -206,8 +205,7 @@ def main():
     scene.world.addEntityChild(rootEntity, softbody)
     softbody_transform = scene.world.addComponent(softbody, BasicTransform(name="softbody_transform", trs=util.identity()))
     softbody_mesh = scene.world.addComponent(softbody, RenderMesh(name="softbody_mesh"))
-    softbody_mesh.vertex_attributes.append(get_solver_vertices(xpbd_solver))
-    softbody_mesh.vertex_attributes.append(get_solver_colors(xpbd_solver))
+    softbody_mesh.vertex_attributes= [get_solver_vertices(xpbd_solver), get_solver_colors(xpbd_solver)]
     softbody_mesh.vertex_index.append(get_solver_indices(xpbd_solver))
     softbody_v_array = scene.world.addComponent(softbody, VertexArray(primitive=gl.GL_LINES))
     softbody_shader = scene.world.addComponent(softbody, ShaderGLDecorator(Shader(vertex_source = Shader.COLOR_VERT_MVP, fragment_source=Shader.COLOR_FRAG)))
@@ -250,7 +248,11 @@ def main():
 
     # model_entity.transform_component.trs = util.scale(1.0, 1.0, 1.0)
 
+    previous_time = time.time()
+
     while running:
+        delta_time = time.time() - previous_time
+        previous_time = time.time()
         running = scene.render()
         displayGUI_text(example_description)
         scene.world.traverse_visit(renderUpdate, scene.world.root)
@@ -268,13 +270,10 @@ def main():
         terrain_shader.setUniformVariable(key='modelViewProj', value=mvp_terrain, mat4=True)
 
         # Update solver 
-        xpbd_solver.step(0.016) # TODO: use dt from scene
+        if(delta_time > 0.0):
+            xpbd_solver.step(delta_time) # TODO: use dt from scene
+            softbody_mesh.vertex_attributes= [get_solver_vertices(xpbd_solver), get_solver_colors(xpbd_solver)]
 
-        softbody_mesh.vertex_attributes.append(get_solver_vertices(xpbd_solver))
-        softbody_mesh.vertex_attributes.append(get_solver_colors(xpbd_solver))
-
-        print(get_solver_vertices(xpbd_solver)[0])
-        print("\n")
 
         # # Set Object Real Time Shader Data
         # for mesh_entity in model_entity.mesh_entities:

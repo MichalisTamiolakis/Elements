@@ -10,7 +10,7 @@ class Particle:
 
     is_kinematic:bool
 
-    def __init__(self, position = np.array([0.0, 0.0, 0.0]), mass = 1.0, is_kinematic = False):
+    def __init__(self, position = np.array([0.0, 0.0, 0.0]), mass = 0.1, is_kinematic = False):
         self.position = position
         self.previous_position = position
         self.velocity = np.array([0.0, 0.0, 0.0])

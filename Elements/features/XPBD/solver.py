@@ -55,7 +55,7 @@ class Solver:
             The compliance of the constraint. Higher values mean less stiffness.
         """
 
-        self.distance_constraints.append(DistanceConstraint(particle_index_0, particle_index_1, np.linalg.norm(np.subtract(np.array(self.particles[particle_index_1].position), np.array(self.particles[particle_index_1].position))), compliance))
+        self.distance_constraints.append(DistanceConstraint(particle_index_0, particle_index_1, np.linalg.norm(np.subtract(np.array(self.particles[particle_index_1].position), np.array(self.particles[particle_index_0].position))), compliance * .1))
 
     def step(self, dt:float):
         substepDt:float = dt / self.substeps
