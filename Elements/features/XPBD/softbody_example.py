@@ -122,7 +122,7 @@ def main():
     initUpdate = scene.world.createSystem(InitGLShaderSystem())
 
     # Add softbody to solver
-    addTetrahedronSoftbody(xpbd_solver, [0, 2, 0], .02)
+    addTetrahedronSoftbody(xpbd_solver, [0, 5, 0], .03)
 
 
     # obj_to_import = MODEL_DIR / "LivingRoom" / "Lamp" / "Lamp.obj"
