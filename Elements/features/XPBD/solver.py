@@ -2,6 +2,7 @@ import numpy as np
 import math
 from Elements.features.XPBD.constraints import VolumeConstraint, DistanceConstraint
 from Elements.features.XPBD.particle import Particle
+from typing import List
 
 class Solver:
     """
@@ -12,27 +13,27 @@ class Solver:
     gravity:[float, float, float] = [0.0, -9.81, 0.0]
     substeps:int = 10
 
-    particles:list[Particle] = []
+    particles:List[Particle] = []
 
-    volume_constraints:list[VolumeConstraint] = []
-    distance_constraints:list[DistanceConstraint] = []
+    volume_constraints:List[VolumeConstraint] = []
+    distance_constraints:List[DistanceConstraint] = []
     
 
-    def __init__(self, particle_positions:list[list]=[], gravity=[0.0, -9.81, 0.0], substeps=10):
+    def __init__(self, particle_positions:List[List]=[], gravity=[0.0, -9.81, 0.0], substeps=10):
         # Calculate initial volume of each tetrahedron & initial distance of each distance constraint
         for particle in particle_positions:
             self.particles.append(Particle(particle))
         self.gravity = gravity
         self.substeps = substeps
 
-    def add_volume_constraint(self, particle_indices:list[int], compliance: float)->int:
+    def add_volume_constraint(self, particle_indices:List[int], compliance: float)->int:
         """
         Adds a volume constraint to the solver. 
         The solver will try to keep the volume of the tetrahedron constant.
         
         Params
         ------
-        particle_indices: list[int]
+        particle_indices: List[int]
             The indices of the particles constituting the tetrahedron.
         compliance: float
             The compliance of the constraint. Higher values mean less stiffness.
@@ -150,7 +151,7 @@ class Solver:
                 self.particles[constraint.affected_particle_indices[i]].position = np.add(self.particles[constraint.affected_particle_indices[i]].position, np.multiply((s * self.particles[constraint.affected_particle_indices[i]].inverse_mass / 6.0), gradients[i]))
             
 
-    def __tetrahedron_volume(self, particle_indices:list[int]) -> float:
+    def __tetrahedron_volume(self, particle_indices:List[int]) -> float:
         # V = 1/6((x2-x1) x (x1-x1)) . (x4-x1)
         base_particle_position = self.particles[particle_indices[0]].position
 

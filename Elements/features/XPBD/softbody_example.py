@@ -1,5 +1,5 @@
 
-import os
+
 import time
 import numpy as np
 import Elements.pyECSS.math_utilities as util
@@ -35,7 +35,7 @@ Lintensity = 40.0
 scene = Scene()    
 
 # Creates a tetrahedron softbody and adds it to the solver
-def addTetrahedronSoftbody(solver:Solver, position:list[float], compliance:float):
+def addTetrahedronSoftbody(solver:Solver, position:List[float], compliance:float):
     tetrahedron_vertices = [
     np.add(np.array([ 1.0, 0.0, 0.0]), position),
     np.add(np.array([ 0.0, 1.0, 0.0]), position),

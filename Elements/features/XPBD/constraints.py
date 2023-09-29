@@ -1,14 +1,15 @@
+from typing import List
 class VolumeConstraint:
     """
     A tetrahedron volume constraint, defined by 4 particles.
     All other shapes can be created by primitive tetrahedrons.
     """
 
-    affected_particle_indices:list[int]
+    affected_particle_indices:List[int]
     volume:float
     compliance:float
 
-    def __init__(self, affected_particle_indices: list[int], volume, compliance:float) -> None:
+    def __init__(self, affected_particle_indices: List[int], volume, compliance:float) -> None:
         self.affected_particle_indices = affected_particle_indices
         self.volume = volume
         self.compliance = compliance
